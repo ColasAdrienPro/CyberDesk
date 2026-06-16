@@ -1,0 +1,245 @@
+{% extends "../layout/base.twig" %}
+
+{% block main %}
+<main class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-6 sm:py-8">
+    <section class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="mb-2 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-[0.18em] text-[#0058be]">Base clients</p>
+            <h1 class="text-2xl font-semibold leading-tight text-[#0b1c30] sm:text-3xl">Liste des clients</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-[#424754] sm:text-base">Gerez les profils clients et leurs attributions aux terminaux.</p>
+        </div>
+
+        <button id="open-client-modal" type="button" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-transparent bg-[#0058be] px-4 py-2.5 font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-white transition-all hover:bg-[#2170e4] hover:shadow-[inset_0_0_8px_rgba(255,255,255,0.35)] active:scale-[0.98] sm:w-auto">
+            <span class="material-symbols-outlined text-[20px]">person_add</span>
+            Ajouter un client
+        </button>
+    </section>
+
+    <section class="flex flex-col gap-4 rounded-lg border border-[#c2c6d6] bg-white p-4 lg:flex-row lg:items-center">
+        <div class="relative w-full lg:w-96">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#727785]">search</span>
+            <input class="w-full rounded-lg border border-[#c2c6d6] bg-[#f8f9ff] py-2.5 pl-10 pr-4 text-sm text-[#0b1c30] transition-all placeholder:text-[#727785] focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="search" placeholder="Rechercher par nom, email...">
+        </div>
+
+        <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:w-auto">
+            <select class="w-full rounded-lg border border-[#c2c6d6] bg-[#f8f9ff] px-3 py-2.5 text-sm text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]">
+                <option>Tous les statuts</option>
+                <option>Assigne</option>
+                <option>Non assigne</option>
+            </select>
+            <select class="w-full rounded-lg border border-[#c2c6d6] bg-[#f8f9ff] px-3 py-2.5 text-sm text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]">
+                <option>Tous les genres</option>
+                <option>Homme</option>
+                <option>Femme</option>
+                <option>Autre</option>
+            </select>
+        </div>
+
+        <p class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754] lg:ml-auto">{{ clients|length|default(0) }} client{% if clients|length != 1 %}s{% endif %}</p>
+    </section>
+
+    <section class="overflow-hidden rounded-lg border border-[#c2c6d6] bg-white">
+        {% if clients and clients|length > 0 %}
+            <div class="grid gap-3 p-3 md:hidden">
+                {% for client in clients %}
+                    <article class="rounded-lg border border-[#c2c6d6] bg-white p-4">
+                        <div class="flex items-start gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2170e4] font-['JetBrains_Mono'] text-sm font-medium text-white">
+                                {{ client.firstname|first|upper }}{{ client.lastname|first|upper }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                    <div class="min-w-0">
+                                        <h2 class="truncate font-['JetBrains_Mono'] text-sm font-medium text-[#0b1c30]">{{ client.firstname }} {{ client.lastname }}</h2>
+                                        <p class="truncate text-sm text-[#727785]">{{ client.email }}</p>
+                                    </div>
+                                    {% if client.computer %}
+                                        <span class="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#eaf1ff] px-2.5 py-1 font-['JetBrains_Mono'] text-xs font-medium text-[#0058be]">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-[#0058be]"></span>
+                                            Terminal {{ client.computer.id }}
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#c2c6d6] bg-[#f8f9ff] px-2.5 py-1 font-['JetBrains_Mono'] text-xs font-medium text-[#727785]">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-[#727785]"></span>
+                                            Non assigne
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                                    <div class="rounded-lg bg-[#f8f9ff] px-3 py-2">
+                                        <dt class="font-['JetBrains_Mono'] text-xs font-medium uppercase text-[#727785]">ID</dt>
+                                        <dd class="mt-1 text-[#0b1c30]">C-{{ client.id }}</dd>
+                                    </div>
+                                    <div class="rounded-lg bg-[#f8f9ff] px-3 py-2">
+                                        <dt class="font-['JetBrains_Mono'] text-xs font-medium uppercase text-[#727785]">Age</dt>
+                                        <dd class="mt-1 text-[#0b1c30]">{% if client.age %}{{ client.age }} ans{% else %}Non renseigne{% endif %}</dd>
+                                    </div>
+                                    <div class="col-span-2 rounded-lg bg-[#f8f9ff] px-3 py-2">
+                                        <dt class="font-['JetBrains_Mono'] text-xs font-medium uppercase text-[#727785]">Genre</dt>
+                                        <dd class="mt-1 text-[#0b1c30]">{% if client.gender %}{{ client.gender }}{% else %}Non renseigne{% endif %}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="hidden overflow-x-auto md:block">
+                <table class="w-full min-w-[760px] border-collapse text-left">
+                    <thead>
+                        <tr class="border-b border-[#c2c6d6] bg-[#f8f9ff]">
+                            <th class="px-6 py-3 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754]">Client</th>
+                            <th class="px-6 py-3 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754]">Contact</th>
+                            <th class="px-6 py-3 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754]">Details</th>
+                            <th class="px-6 py-3 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754]">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#c2c6d6]">
+                        {% for client in clients %}
+                            <tr class="transition-colors hover:bg-[#e5eeff]/50">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2170e4] font-['JetBrains_Mono'] text-sm font-medium text-white">
+                                            {{ client.firstname|first|upper }}{{ client.lastname|first|upper }}
+                                        </div>
+                                        <div>
+                                            <p class="font-['JetBrains_Mono'] text-sm font-medium text-[#0b1c30]">{{ client.firstname }} {{ client.lastname }}</p>
+                                            <p class="text-sm text-[#727785]">ID: C-{{ client.id }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-[#424754]">{{ client.email }}</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-sm text-[#0b1c30]">{% if client.age %}{{ client.age }} ans{% else %}Age non renseigne{% endif %}</span>
+                                        <span class="font-['JetBrains_Mono'] text-xs font-medium uppercase text-[#727785]">{% if client.gender %}{{ client.gender }}{% else %}Genre non renseigne{% endif %}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% if client.computer %}
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-[#eaf1ff] px-2.5 py-1 font-['JetBrains_Mono'] text-xs font-medium text-[#0058be]">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-[#0058be]"></span>
+                                            Terminal {{ client.computer.id }}
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-[#c2c6d6] bg-[#f8f9ff] px-2.5 py-1 font-['JetBrains_Mono'] text-xs font-medium text-[#727785]">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-[#727785]"></span>
+                                            Non assigne
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex flex-col gap-1 border-t border-[#c2c6d6] bg-[#f8f9ff] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-sm text-[#424754]">Affichage de {{ clients|length }} client{% if clients|length != 1 %}s{% endif %}</p>
+                <span class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">CyberDesk</span>
+            </div>
+        {% else %}
+            <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
+                <span class="material-symbols-outlined mb-3 text-[40px] text-[#727785]">groups</span>
+                <h2 class="text-xl font-semibold text-[#0b1c30]">Aucun client enregistre</h2>
+                <p class="mt-2 max-w-md text-sm leading-6 text-[#424754]">Ajoutez votre premier client pour commencer a suivre ses informations et ses attributions.</p>
+                <button type="button" class="mt-5 inline-flex items-center justify-center gap-2 rounded-lg bg-[#0058be] px-4 py-2.5 font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-white transition-all hover:bg-[#2170e4]" data-open-client-modal>
+                    <span class="material-symbols-outlined text-[20px]">person_add</span>
+                    Ajouter un client
+                </button>
+            </div>
+        {% endif %}
+    </section>
+</main>
+
+<dialog id="client-modal" class="m-auto max-h-[92vh] w-[min(94vw,640px)] overflow-y-auto rounded-lg border border-[#c2c6d6] bg-white p-0 text-[#0b1c30] shadow-[0_18px_50px_rgba(11,28,48,0.18)] backdrop:bg-[#0b1c30]/40"{% if errors %} data-open-on-load="true"{% endif %}>
+    <div class="flex items-center justify-between border-b border-[#c2c6d6] bg-[#f8f9ff] px-5 py-4">
+        <div>
+            <h2 class="text-xl font-semibold leading-tight">Ajouter un client</h2>
+            <p class="mt-1 text-sm text-[#424754]">Creez un profil client rattache a votre cybercafe.</p>
+        </div>
+        <button type="button" class="rounded p-1.5 text-[#424754] transition-colors hover:bg-[#e5eeff] hover:text-[#0b1c30]" data-close-client-modal aria-label="Fermer">
+            <span class="material-symbols-outlined text-[22px]">close</span>
+        </button>
+    </div>
+
+    <form action="/clientboard" method="post" class="space-y-4 px-4 py-5 sm:px-5">
+        {% if errors.general %}
+            <div class="rounded-lg border border-[#ffb3ad] bg-[#ffdad7] px-4 py-3 text-sm text-[#930013]">
+                {% for error in errors.general %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="space-y-1.5">
+                <label for="firstname" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Prenom</label>
+                <input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="text" id="firstname" name="firstname" value="{{ old.firstname|default('') }}">
+                {% if errors.firstname %}
+                    <p class="text-sm text-[#ba1a1a]">{{ errors.firstname[0] }}</p>
+                {% endif %}
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="lastname" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Nom</label>
+                <input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="text" id="lastname" name="lastname" value="{{ old.lastname|default('') }}">
+                {% if errors.lastname %}
+                    <p class="text-sm text-[#ba1a1a]">{{ errors.lastname[0] }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="space-y-1.5">
+            <label for="email" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Email</label>
+            <input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="email" id="email" name="email" value="{{ old.email|default('') }}">
+            {% if errors.email %}
+                <p class="text-sm text-[#ba1a1a]">{{ errors.email[0] }}</p>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="space-y-1.5">
+                <label for="password" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Mot de passe</label>
+                <input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="password" id="password" name="password">
+                {% if errors.password %}
+                    <p class="text-sm text-[#ba1a1a]">{{ errors.password[0] }}</p>
+                {% endif %}
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="comfirmedPassword" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Confirmation</label>
+                <input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="password" id="comfirmedPassword" name="comfirmedPassword">
+                {% if errors.comfirmedPassword %}
+                    <p class="text-sm text-[#ba1a1a]">{{ errors.comfirmedPassword[0] }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="space-y-1.5">
+                <label for="age" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Age <span class="text-[#727785]">(optionnel)</span></label>
+                <input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="number" id="age" name="age" value="{{ old.age|default('') }}">
+                {% if errors.age %}
+                    <p class="text-sm text-[#ba1a1a]">{{ errors.age[0] }}</p>
+                {% endif %}
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="gender" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Genre <span class="text-[#727785]">(optionnel)</span></label>
+                <input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="text" id="gender" name="gender" value="{{ old.gender|default('') }}">
+                {% if errors.gender %}
+                    <p class="text-sm text-[#ba1a1a]">{{ errors.gender[0] }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="flex flex-col-reverse gap-3 border-t border-[#c2c6d6] pt-4 sm:flex-row sm:justify-end">
+            <button type="button" class="rounded-lg border border-[#c2c6d6] bg-white px-4 py-2.5 font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be]" data-close-client-modal>Annuler</button>
+            <button id="client-register" type="submit" class="rounded-lg bg-[#0058be] px-4 py-2.5 font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-white transition-all hover:bg-[#2170e4] hover:shadow-[inset_0_0_8px_rgba(255,255,255,0.35)] active:scale-[0.98]">Enregistrer</button>
+        </div>
+    </form>
+</dialog>
+
+<script src="/assets/js/clientboard.js" defer></script>
+{% endblock %}

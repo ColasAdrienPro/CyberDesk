@@ -2,6 +2,7 @@ import express from "express"
 import session from "express-session"
 import "dotenv/config"
 import managerRouter from "./router/managerRouter.js"
+import clientRouter from "./router/clientRouter.js"
 
 const app = express()
 
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
 })
 
 app.use(managerRouter)
+app.use(clientRouter)
 
 app.listen(process.env.PORT, (err)=>{
     if (err) {

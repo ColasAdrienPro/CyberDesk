@@ -1,0 +1,94 @@
+<header class="sticky top-0 z-40 w-full border-b border-[#c2c6d6] bg-[#f8f9ff]/95 text-[#0b1c30] backdrop-blur">
+	<div class="flex min-h-16 w-full items-center justify-between gap-4 px-4 py-3 sm:px-6">
+		<a href="{% if isLogged %}/dashboard{% else %}/login{% endif %}" class="flex shrink-0 items-center gap-2.5 sm:gap-3">
+			<span class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg sm:h-10 sm:w-10">
+				<img src="/assets/images/favicon.png?v=2" alt="" class="h-full w-full object-contain">
+			</span>
+			<span class="leading-tight">
+				<span class="block text-base font-bold text-[#0058be] sm:text-lg">CyberDesk</span>
+			</span>
+		</a>
+
+		<button id="mobile-menu-button" type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#c2c6d6] bg-white text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be] md:hidden" aria-controls="mobile-menu" aria-expanded="false" aria-label="Ouvrir le menu">
+			<span class="material-symbols-outlined text-[22px]" data-menu-icon>menu</span>
+		</button>
+
+		<nav class="hidden md:block" aria-label="Navigation principale">
+			<ul class="flex min-w-max items-center gap-2 font-['JetBrains_Mono'] text-sm font-medium">
+				{% if isLogged %}
+					<li>
+						<a href="/dashboard" class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors sm:gap-2 sm:px-3 {% if currentPath == '/dashboard' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
+							<span class="material-symbols-outlined text-[18px]">dashboard</span>
+							Accueil
+						</a>
+					</li>
+					<li>
+						<a href="/computerboard" class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors sm:gap-2 sm:px-3 {% if currentPath == '/computerboard' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
+							<span class="material-symbols-outlined text-[18px]">computer</span>
+							Ordinateurs
+						</a>
+					</li>
+					<li>
+						<a href="/clientboard" class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors sm:gap-2 sm:px-3 {% if currentPath == '/clientboard' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
+							<span class="material-symbols-outlined text-[18px]">groups</span>
+							Clients
+						</a>
+					</li>
+					<li>
+						<a href="/logout" class="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#c2c6d6] bg-white px-2.5 py-2 text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be] sm:gap-2 sm:px-3">
+							<span class="material-symbols-outlined text-[18px]">logout</span>
+							Déconnexion
+						</a>
+					</li>
+				{% else %}
+					<li>
+						<a href="/login" class="block whitespace-nowrap rounded-lg px-3 py-2 transition-colors {% if currentPath == '/login' %}bg-white text-[#0b1c30] shadow-sm{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">Connexion</a>
+					</li>
+					<li>
+						<a href="/subscribe" class="block whitespace-nowrap rounded-lg px-4 py-2 shadow-sm transition-colors {% if currentPath == '/subscribe' %}bg-[#0058be] text-white{% else %}bg-white text-[#0058be] hover:bg-[#d8e2ff]{% endif %}">Inscription</a>
+					</li>
+				{% endif %}
+			</ul>
+		</nav>
+	</div>
+
+	<nav id="mobile-menu" class="border-t border-[#c2c6d6] px-4 py-3 md:hidden" aria-label="Navigation mobile" hidden>
+		<ul class="flex flex-col gap-2 font-['JetBrains_Mono'] text-sm font-medium">
+			{% if isLogged %}
+				<li>
+					<a href="/dashboard" class="flex items-center gap-2 rounded-lg px-3 py-2.5 transition-colors {% if currentPath == '/dashboard' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
+						<span class="material-symbols-outlined text-[20px]">dashboard</span>
+						Accueil
+					</a>
+				</li>
+				<li>
+					<a href="/computerboard" class="flex items-center gap-2 rounded-lg px-3 py-2.5 transition-colors {% if currentPath == '/computerboard' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
+						<span class="material-symbols-outlined text-[20px]">computer</span>
+						Ordinateurs
+					</a>
+				</li>
+				<li>
+					<a href="/clientboard" class="flex items-center gap-2 rounded-lg px-3 py-2.5 transition-colors {% if currentPath == '/clientboard' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
+						<span class="material-symbols-outlined text-[20px]">groups</span>
+						Clients
+					</a>
+				</li>
+				<li>
+					<a href="/logout" class="flex w-full items-center gap-2 rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be]">
+						<span class="material-symbols-outlined text-[20px]">logout</span>
+						Déconnexion
+					</a>
+				</li>
+			{% else %}
+				<li>
+					<a href="/login" class="flex items-center rounded-lg px-3 py-2.5 transition-colors {% if currentPath == '/login' %}bg-white text-[#0b1c30] shadow-sm{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">Connexion</a>
+				</li>
+				<li>
+					<a href="/subscribe" class="flex items-center rounded-lg px-3 py-2.5 shadow-sm transition-colors {% if currentPath == '/subscribe' %}bg-[#0058be] text-white{% else %}bg-white text-[#0058be] hover:bg-[#d8e2ff]{% endif %}">Inscription</a>
+				</li>
+			{% endif %}
+		</ul>
+	</nav>
+
+	<script src="/assets/js/header.js" defer></script>
+</header>
