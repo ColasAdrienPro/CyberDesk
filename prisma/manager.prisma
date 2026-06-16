@@ -1,0 +1,10 @@
+model Manager {
+  id            Int        @id @default(autoincrement())
+  cyberCafeName String
+  siret         String     @unique
+  password      String
+  managerName   String?
+
+  clients       Client[]
+  computers     Computer[]
+}

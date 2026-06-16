@@ -1,0 +1,11 @@
+model Computer {
+  id          Int       @id @default(autoincrement())
+  macAddress  String    @unique
+  isBroken    Boolean   @default(false)
+
+  managerId   Int
+  manager     Manager   @relation(fields: [managerId], references: [id])
+
+  clientId    Int?      @unique
+  client      Client?   @relation(fields: [clientId], references: [id])
+}

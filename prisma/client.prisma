@@ -1,0 +1,14 @@
+model Client {
+  id          Int       @id @default(autoincrement())
+  firstname   String
+  lastname    String
+  email       String    @unique
+  password    String
+  age         Int?
+  gender      String?
+
+  managerId   Int
+  manager     Manager   @relation(fields: [managerId], references: [id])
+
+  computer    Computer?
+}
