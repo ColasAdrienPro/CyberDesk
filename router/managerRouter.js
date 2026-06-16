@@ -80,32 +80,57 @@ managerRouter.post("/login", async (req, res) => {
     }
 })
 
-managerRouter.get("/dashboard", authguard, async (req,res)=>{
+managerRouter.get("/dashboard", authguard, async (req, res) => {
     const manager = await prisma.manager.findUnique({
         where: {
             id: req.session.managerId
         },
         include: {
-            clients: true,
-            computers: true
+            clients: {
+                orderBy: {
+                    id: "desc"
+                }
+            },
+            computers: {
+                include: {
+                    client: true
+                },
+                orderBy: {
+                    id: "asc"
+                }
+            }
         }
     })
 
     if (!manager) {
-        req.session.destroy(() =>{
+        req.session.destroy(() => {
             res.redirect("/login")
         })
         return
     }
 
+    const brokenComputers = manager.computers.filter((computer) => computer.isBroken)
+    const occupiedComputers = manager.computers.filter((computer) => !computer.isBroken && computer.client)
+    const availableComputers = manager.computers.filter((computer) => !computer.isBroken && !computer.client)
+
     res.render("pages/dashboard.twig", {
         manager,
         clients: manager.clients,
-        computers: manager.computers
+        recentClients: manager.clients.slice(0, 5),
+        computers: manager.computers,
+        brokenComputers,
+        occupiedComputers,
+        availableComputers,
+        dashboardStats: {
+            totalComputers: manager.computers.length,
+            activeSessions: occupiedComputers.length,
+            brokenComputers: brokenComputers.length,
+            totalClients: manager.clients.length
+        }
     })
 })
 
-managerRouter.get("/logout", (req,res)=>{
+managerRouter.get("/logout", (req, res) => {
     req.session.destroy(() => {
         res.redirect("/login")
     })

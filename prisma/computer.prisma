@@ -1,5 +1,6 @@
 model Computer {
   id          Int       @id @default(autoincrement())
+  name        String
   macAddress  String    @unique
   isBroken    Boolean   @default(false)
 
