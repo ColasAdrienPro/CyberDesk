@@ -137,6 +137,16 @@
 									<div class="min-w-0">
 										<p class="truncate text-sm font-medium text-[#0b1c30]">{{ computer.name }}</p>
 										<p class="mt-1 font-['JetBrains_Mono'] text-xs font-medium text-[#727785]">Maintenance requise</p>
+										{% if computer.brokenReason %}
+											<p class="mt-2 text-sm leading-5 text-[#424754]">{{ computer.brokenReason }}</p>
+										{% endif %}
+										<form action="/computer/{{ computer.id }}/repair" method="post" class="mt-3">
+											<input type="hidden" name="redirectTo" value="/dashboard">
+											<button type="submit" class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#c2c6d6] bg-white px-3 py-2 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#00714d] transition-colors hover:border-[#6cf8bb] hover:bg-[#ecfdf5]" onclick="return confirm('Marquer cette panne comme corrigee ?');">
+												<span class="material-symbols-outlined text-[18px]">task_alt</span>
+												Panne corrigee
+											</button>
+										</form>
 									</div>
 								</div>
 							{% endfor %}

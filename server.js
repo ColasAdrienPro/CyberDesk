@@ -17,6 +17,7 @@ app.use(session({
 
 app.use((req, res, next) => {
     res.locals.isLogged = Boolean(req.session.managerId)
+    res.locals.isClientLogged = Boolean(req.session.clientId)
     res.locals.currentPath = req.path
     next()
 })

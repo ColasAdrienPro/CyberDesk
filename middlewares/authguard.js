@@ -16,3 +16,24 @@ export const authguard = async (req, res, next) => {
         res.redirect("/login")
     }
 }
+
+export const clientAuthguard = async (req, res, next) => {
+    if (req.session.clientId) {
+        const client = await prisma.client.findUnique({
+            where: {
+                id: parseInt(req.session.clientId)
+            },
+            include: {
+                manager: true,
+                computer: true
+            }
+        })
+        if (client) {
+            req.client = client
+            return next()
+        }
+        res.redirect("/login-client")
+    } else {
+        res.redirect("/login-client")
+    }
+}

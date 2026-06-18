@@ -5,17 +5,104 @@ import computerSchema from "../validations/computerValidation.js"
 
 const computerRouter = Router()
 
-const getManagerComputer = (managerId) => {
+const getManagerComputer = (managerId, filters = {}) => {
+    const search = filters.search?.trim()
+    const status = filters.status
+    const sort = filters.sort
+
+    const where = {
+        managerId
+    }
+    const andConditions = []
+
+    if (search) {
+        andConditions.push({
+            OR: [
+                {
+                    name: {
+                        contains: search
+                    }
+                },
+                {
+                    macAddress: {
+                        contains: search
+                    }
+                },
+                {
+                    client: {
+                        is: {
+                            OR: [
+                                {
+                                    firstname: {
+                                        contains: search
+                                    }
+                                },
+                                {
+                                    lastname: {
+                                        contains: search
+                                    }
+                                },
+                                {
+                                    email: {
+                                        contains: search
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        })
+    }
+
+    if (status === "available") {
+        andConditions.push({
+            client: {
+                is: null
+            },
+            isBroken: false
+        })
+    }
+
+    if (status === "occupied") {
+        andConditions.push({
+            client: {
+                isNot: null
+            },
+            isBroken: false
+        })
+    }
+
+    if (status === "broken") {
+        andConditions.push({
+            isBroken: true
+        })
+    }
+
+    if (andConditions.length > 0) {
+        where.AND = andConditions
+    }
+
+    const orderBy = {
+        id: "desc"
+    }
+
+    if (sort === "name") {
+        orderBy.name = "asc"
+        delete orderBy.id
+    }
+
+    if (sort === "macAddress") {
+        orderBy.macAddress = "asc"
+        delete orderBy.id
+    }
+
     return prisma.computer.findMany({
-        where: {
-            managerId
-        },
+        where,
         include: {
             client: true
         },
-        orderBy: {
-            id: "desc"
-        }
+        orderBy
     })
 }
 
@@ -45,11 +132,17 @@ const renderComputerBoard = (res, computers, viewData = {}) => {
 }
 
 computerRouter.get("/computerboard", authguard, async (req, res) => {
-    const computers = await getManagerComputer(req.session.managerId)
+    const filters = {
+        search: req.query.search ?? "",
+        status: req.query.status ?? "",
+        sort: req.query.sort ?? ""
+    }
+    const computers = await getManagerComputer(req.session.managerId, filters)
     const availableClients = await getAvailableClients(req.session.managerId)
 
     renderComputerBoard(res, computers, {
-        availableClients
+        availableClients,
+        filters
     })
 })
 
@@ -240,6 +333,33 @@ computerRouter.post("/computer/:computerId/release-client", authguard, async (re
     } catch (error) {
         console.error(error)
         return res.redirect("/computerboard")
+    }
+})
+
+computerRouter.post("/computer/:computerId/repair", authguard, async (req, res) => {
+    const computerId = parseInt(req.params.computerId)
+    const redirectTo = req.body.redirectTo === "/dashboard" ? "/dashboard" : "/computerboard"
+
+    if (Number.isNaN(computerId)) {
+        return res.redirect(redirectTo)
+    }
+
+    try {
+        await prisma.computer.updateMany({
+            where: {
+                id: computerId,
+                managerId: req.session.managerId
+            },
+            data: {
+                isBroken: false,
+                brokenReason: null
+            }
+        })
+
+        return res.redirect(redirectTo)
+    } catch (error) {
+        console.error(error)
+        return res.redirect(redirectTo)
     }
 })
 

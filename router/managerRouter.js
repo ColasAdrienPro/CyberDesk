@@ -70,6 +70,7 @@ managerRouter.post("/login", async (req, res) => {
         }
 
         req.session.managerId = manager.id
+        req.session.clientId = null
         res.redirect("/dashboard")
     } catch (error) {
         console.log(error);

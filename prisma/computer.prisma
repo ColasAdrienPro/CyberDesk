@@ -3,6 +3,7 @@ model Computer {
   name        String
   macAddress  String    @unique
   isBroken    Boolean   @default(false)
+  brokenReason String?   @db.Text
 
   managerId   Int
   manager     Manager   @relation(fields: [managerId], references: [id])
