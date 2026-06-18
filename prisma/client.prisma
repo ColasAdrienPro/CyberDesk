@@ -1,4 +1,6 @@
 model Client {
+  // Utilisateur final rattache a un manager. Il peut avoir au plus un poste
+  // actuellement assigne et plusieurs reservations dans le temps.
   id          Int       @id @default(autoincrement())
   firstname   String
   lastname    String
@@ -11,4 +13,5 @@ model Client {
   manager     Manager   @relation(fields: [managerId], references: [id])
 
   computer    Computer?
+  reservations Reservation[]
 }

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+// Regles de format partagees par les champs du formulaire d'inscription
+// manager. Les regex refusent les valeurs trop libres avant insertion DB.
 const regex = {
     cyberCafeName: /^[\p{L}0-9\s'-]{2,100}$/u,
     siret: /^\d{14}$/,
@@ -7,11 +9,15 @@ const regex = {
     managerName: /^[\p{L}\s'-]{2,80}$/u
 };
 
+// Convertit une chaine vide de formulaire en undefined pour les champs
+// optionnels, sinon Zod essaierait de valider "" comme une vraie valeur.
 const optionalText = (schema) => z.preprocess(
     (value) => value === "" ? undefined : value,
     schema.optional()
 );
 
+// Contrat complet du formulaire manager: trim des chaines, controle du SIRET,
+// force du mot de passe et verification de confirmation.
 const managerSchema = z.object({
     cyberCafeName: z
         .string()

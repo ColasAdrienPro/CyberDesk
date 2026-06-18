@@ -1,12 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Point d'entree Prisma. Les modeles sont repartis dans plusieurs fichiers
+// du dossier prisma/, car prisma.config.js indique `schema: "prisma/"`.
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
+// Genere le client JavaScript importe depuis @prisma/client.
 generator client {
   provider = "prisma-client-js"
 }
 
+// Base MySQL/MariaDB. L'URL complete est fournie par prisma.config.js.
 datasource db {
   provider = "mysql"
 }

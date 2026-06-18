@@ -1,4 +1,6 @@
 model Computer {
+  // Poste informatique gere par un manager. clientId est unique pour garantir
+  // qu'un client ne peut etre assigne qu'a un seul poste a la fois.
   id          Int       @id @default(autoincrement())
   name        String
   macAddress  String    @unique
@@ -10,4 +12,5 @@ model Computer {
 
   clientId    Int?      @unique
   client      Client?   @relation(fields: [clientId], references: [id])
+  reservations Reservation[]
 }

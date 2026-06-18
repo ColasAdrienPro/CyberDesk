@@ -1,4 +1,6 @@
 model Manager {
+  // Proprietaire d'un cybercafe. Un manager possede ses clients, ses postes
+  // et toutes les reservations de son etablissement.
   id            Int        @id @default(autoincrement())
   cyberCafeName String
   siret         String     @unique
@@ -7,4 +9,5 @@ model Manager {
 
   clients       Client[]
   computers     Computer[]
+  reservations  Reservation[]
 }

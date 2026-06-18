@@ -1,0 +1,76 @@
+{% extends "../layout/base.twig" %}
+
+{% block main %}
+	<main class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-5 sm:px-6 sm:py-8">
+		{# Entete de l'espace reservations cote client. #}
+		<section class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+			<div>
+				<p class="mb-2 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-[0.18em] text-[#0058be]">Espace client</p>
+				<h1 class="text-2xl font-semibold leading-tight text-[#0b1c30] sm:text-3xl">Reservations</h1>
+				<p class="mt-2 max-w-2xl text-sm leading-6 text-[#424754] sm:text-base">Choisissez un poste, un jour et une heure pour envoyer une demande au gerant.</p>
+			</div>
+			<a href="/dashboardClient" class="inline-flex w-fit items-center gap-2 rounded-lg border border-[#c2c6d6] bg-white px-4 py-2.5 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be]">
+				<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+				Mon espace
+			</a>
+		</section>
+
+		{# Formulaire de demande + calendrier des disponibilites. #}
+		<section class="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]">
+			<article class="overflow-hidden rounded-lg border border-[#c2c6d6] bg-white">
+				<div class="border-b border-[#c2c6d6] bg-[#f8f9ff] px-5 py-4">
+					<h2 class="text-xl font-semibold text-[#0b1c30]">Nouvelle demande</h2>
+					<p class="mt-1 text-sm text-[#424754]">Le creneau sera en attente de validation.</p>
+				</div>
+				<form id="reservationForm" data-calendar-role="client" class="flex flex-col gap-4 p-5">
+					{# Le client choisit seulement un poste et un creneau; le serveur rattache le client via la session. #}
+					<label class="flex flex-col gap-1.5">
+						<span class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">Poste</span>
+						<select id="reservationComputerSelect" name="computerId" required class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-sm text-[#0b1c30] focus:border-[#0058be] focus:outline-none">
+							<option value="">Chargement des postes...</option>
+						</select>
+					</label>
+					<label class="flex flex-col gap-1.5">
+						<span class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">Jour</span>
+						<input id="reservationDate" name="date" type="date" required class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-sm text-[#0b1c30] focus:border-[#0058be] focus:outline-none">
+					</label>
+					<label class="flex flex-col gap-1.5">
+						<span class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">Heure de debut</span>
+						<input id="reservationStartTime" name="startTime" type="time" min="08:00" max="21:30" step="1800" required class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-sm text-[#0b1c30] focus:border-[#0058be] focus:outline-none">
+					</label>
+					<label class="flex flex-col gap-1.5">
+						<span class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">Duree</span>
+						<select id="reservationDuration" name="duration" required class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-sm text-[#0b1c30] focus:border-[#0058be] focus:outline-none">
+							<option value="30">30 minutes</option>
+							<option value="60" selected>1 heure</option>
+							<option value="90">1 heure 30</option>
+							<option value="120">2 heures</option>
+							<option value="180">3 heures</option>
+						</select>
+					</label>
+					<p id="reservationFormMessage" class="hidden rounded-lg border px-3 py-2.5 text-sm leading-5"></p>
+					<button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#0058be] px-4 py-2.5 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-white transition-colors hover:bg-[#2170e4]">
+						<span class="material-symbols-outlined text-[18px]">event_available</span>
+						Demander
+					</button>
+				</form>
+			</article>
+
+			<article class="overflow-hidden rounded-lg border border-[#c2c6d6] bg-white">
+				<div class="border-b border-[#c2c6d6] bg-[#f8f9ff] px-5 py-4">
+					<h2 class="text-xl font-semibold text-[#0b1c30]">Calendrier</h2>
+					<p class="mt-1 text-sm text-[#424754]">Vos demandes en attente apparaissent en orange.</p>
+				</div>
+				<div class="p-4">
+					<div id="reservationCalendar" data-calendar-role="client" class="min-h-[620px]"></div>
+				</div>
+			</article>
+		</section>
+	</main>
+{% endblock %}
+
+{% block scripts %}
+	{# FullCalendar doit etre disponible avant reservationCalendar.js. #}
+	<script src="/assets/vendor/fullcalendar/index.global.min.js"></script>
+	<script src="/assets/js/reservationCalendar.js"></script>
+{% endblock %}

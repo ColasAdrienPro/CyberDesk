@@ -4,8 +4,13 @@ import { prisma } from "../db.js"
 import { authguard, clientAuthguard } from "../middlewares/authguard.js"
 import clientSchema, { clientUpdateSchema } from "../validations/clientValidation.js"
 
+// Router responsable du login client, de son dashboard et du CRUD clients
+// cote manager.
 const clientRouter = Router()
 
+// Construit la requete Prisma de listing clients selon les filtres de l'UI.
+// Le managerId est toujours impose pour ne jamais exposer les clients d'un
+// autre cybercafe.
 const getManagerClients = (managerId, filters = {}) => {
     const search = filters.search?.trim()
     const status = filters.status
@@ -62,6 +67,8 @@ const getManagerClients = (managerId, filters = {}) => {
     })
 }
 
+// Rend la page de gestion clients avec les donnees optionnelles d'erreurs,
+// filtres ou formulaire en cours d'edition.
 const renderClientBoard = (res, clients, viewData = {}) => {
     return res.render("pages/clientboard.twig", {
         clients,
@@ -69,6 +76,8 @@ const renderClientBoard = (res, clients, viewData = {}) => {
     })
 }
 
+// Centralise le rendu dashboard client pour reutiliser la meme vue apres une
+// erreur de signalement de panne ou un affichage normal.
 const renderClientDashboard = (res, client, viewData = {}) => {
     return res.render("pages/dashboardClient.twig", {
         client,
@@ -82,6 +91,7 @@ clientRouter.get("/login-client", (req, res) => {
     res.render("pages/loginClient.twig")
 })
 
+// Authentifie un client avec email + mot de passe et ouvre une session client.
 clientRouter.post("/login-client", async (req, res) => {
     try {
         if (!req.body.email || !req.body.password) {
@@ -104,6 +114,7 @@ clientRouter.post("/login-client", async (req, res) => {
             throw new Error("Identifiants incorrects")
         }
 
+        // Les deux roles sont exclusifs dans la meme session.
         req.session.clientId = client.id
         req.session.managerId = null
         return res.redirect("/dashboardClient")
@@ -115,10 +126,12 @@ clientRouter.post("/login-client", async (req, res) => {
     }
 })
 
+// Affiche l'espace personnel du client connecte.
 clientRouter.get("/dashboardClient", clientAuthguard, async (req, res) => {
     renderClientDashboard(res, req.client)
 })
 
+// Permet au client de signaler que son poste assigne est en panne.
 clientRouter.post("/dashboardClient/computer/report-broken", clientAuthguard, async (req, res) => {
     if (!req.client.computer) {
         return res.redirect("/dashboardClient")
@@ -145,6 +158,8 @@ clientRouter.post("/dashboardClient/computer/report-broken", clientAuthguard, as
     }
 
     try {
+        // updateMany ajoute une securite: le poste doit bien appartenir au
+        // client connecte, sinon aucune ligne n'est modifiee.
         await prisma.computer.updateMany({
             where: {
                 id: req.client.computer.id,
@@ -163,12 +178,14 @@ clientRouter.post("/dashboardClient/computer/report-broken", clientAuthguard, as
     }
 })
 
+// Ferme la session client.
 clientRouter.get("/logout-client", (req, res) => {
     req.session.destroy(() => {
         res.redirect("/login-client")
     })
 })
 
+// Liste les clients du manager avec recherche, statut et genre.
 clientRouter.get("/clientboard", authguard, async (req, res) => {
     const filters = {
         search: req.query.search ?? "",
@@ -182,6 +199,7 @@ clientRouter.get("/clientboard", authguard, async (req, res) => {
     })
 })
 
+// Ajoute un client rattache au manager connecte.
 clientRouter.post("/clientboard", authguard, async (req, res) => {
     const result = clientSchema.safeParse(req.body)
 
@@ -195,6 +213,7 @@ clientRouter.post("/clientboard", authguard, async (req, res) => {
     }
 
     try {
+        // Le mot de passe client est hashe exactement comme celui du manager.
         const hashedpassword = await hash(result.data.password, parseInt(process.env.SALT))
 
         await prisma.client.create({
@@ -222,6 +241,7 @@ clientRouter.post("/clientboard", authguard, async (req, res) => {
     }
 })
 
+// Modifie un client existant apres verification qu'il appartient au manager.
 clientRouter.post("/client/:clientId/update", authguard, async (req, res) => {
     const clientId = parseInt(req.params.clientId)
 
@@ -253,6 +273,7 @@ clientRouter.post("/client/:clientId/update", authguard, async (req, res) => {
             return res.redirect("/clientboard")
         }
 
+        // On prepare uniquement les champs modifiables depuis le formulaire.
         const data = {
             firstname: result.data.firstname,
             lastname: result.data.lastname,
@@ -261,6 +282,7 @@ clientRouter.post("/client/:clientId/update", authguard, async (req, res) => {
             gender: result.data.gender ?? null
         }
 
+        // Mot de passe facultatif en edition: absent = conservation de l'ancien.
         if (result.data.password) {
             data.password = await hash(result.data.password, parseInt(process.env.SALT))
         }
@@ -286,6 +308,7 @@ clientRouter.post("/client/:clientId/update", authguard, async (req, res) => {
     }
 })
 
+// Supprime un client et nettoie ses liens dependants dans une transaction.
 clientRouter.post("/client/:clientId/delete", authguard, async (req, res) => {
     const clientId = parseInt(req.params.clientId)
 
@@ -305,7 +328,15 @@ clientRouter.post("/client/:clientId/delete", authguard, async (req, res) => {
             return res.redirect("/clientboard")
         }
 
+        // La transaction garde la base coherente: reservations supprimees,
+        // poste libere, puis client supprime.
         await prisma.$transaction([
+            prisma.reservation.deleteMany({
+                where: {
+                    clientId: existingClient.id,
+                    managerId: req.session.managerId
+                }
+            }),
             prisma.computer.updateMany({
                 where: {
                     clientId: existingClient.id,

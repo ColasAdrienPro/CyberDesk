@@ -2,6 +2,7 @@
 
 {% block main %}
 	<main class="grid min-h-[calc(100vh-4rem)] bg-white lg:grid-cols-2">
+		{# Panneau de marque client affiche sur desktop. #}
 		<section class="relative hidden overflow-hidden bg-[#0b1c30] p-12 text-white lg:flex lg:flex-col lg:justify-between">
 			<div class="absolute inset-0 bg-[radial-gradient(circle_at_28%_24%,rgba(108,248,187,0.22),transparent_32%),linear-gradient(135deg,rgba(11,28,48,0.96),rgba(0,88,190,0.88))]"></div>
 			<div class="absolute inset-x-12 top-32 h-px bg-white/20"></div>
@@ -25,6 +26,7 @@
 			<p class="relative z-10 font-['JetBrains_Mono'] text-xs text-white/55">Portail client CyberDesk</p>
 		</section>
 
+		{# Formulaire client: POST /login-client verifie email + mot de passe. #}
 		<section class="flex items-center justify-center bg-white px-6 py-10 sm:px-10">
 			<div class="w-full max-w-md">
 				<div class="mb-8 flex items-center justify-center gap-3 text-[#0058be] lg:hidden">
@@ -42,6 +44,7 @@
 				</div>
 
 				{% if errors %}
+					{# Message unique pour ne pas reveler si l'email ou le mot de passe est faux. #}
 					<p class="mb-5 rounded-lg border border-[#ffb3ad] bg-[#ffdad7] px-4 py-3 text-sm text-[#930013]">{{ errors }}</p>
 				{% endif %}
 

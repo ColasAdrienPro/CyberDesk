@@ -4,8 +4,11 @@ import { prisma } from "../db.js"
 import { authguard } from "../middlewares/authguard.js"
 import managerSchema from "../validations/managerValidations.js"
 
+// Router responsable de l'inscription, connexion, tableau de bord et
+// deconnexion des gerants.
 const managerRouter = Router()
 
+// Redirige la racine vers l'inscription pour servir de page d'entree.
 managerRouter.get("/", (req, res) => {
     res.redirect("/subscribe")
 })
@@ -14,6 +17,7 @@ managerRouter.get("/subscribe", (req, res) => {
     res.render("pages/subscribe.twig")
 })
 
+// Cree un manager apres validation Zod et hash du mot de passe.
 managerRouter.post("/subscribe", async (req, res) => {
     const result = managerSchema.safeParse(req.body)
 
@@ -25,6 +29,7 @@ managerRouter.post("/subscribe", async (req, res) => {
     }
 
     try {
+        // Le hash bcrypt evite de stocker le mot de passe en clair.
         const hashedpassword = await hash(result.data.password, parseInt(process.env.SALT))
 
         await prisma.manager.create({
@@ -52,6 +57,7 @@ managerRouter.get("/login", (req, res) => {
     res.render("pages/login.twig")
 })
 
+// Authentifie un gerant par SIRET + mot de passe, puis initialise la session.
 managerRouter.post("/login", async (req, res) => {
     try {
         const manager = await prisma.manager.findUnique({
@@ -69,6 +75,7 @@ managerRouter.post("/login", async (req, res) => {
             throw new Error("Mot de passe incorrect")
         }
 
+        // Une session ne doit jamais etre a la fois manager et client.
         req.session.managerId = manager.id
         req.session.clientId = null
         res.redirect("/dashboard")
@@ -81,6 +88,7 @@ managerRouter.post("/login", async (req, res) => {
     }
 })
 
+// Charge les donnees resumees du manager pour alimenter les widgets du dashboard.
 managerRouter.get("/dashboard", authguard, async (req, res) => {
     const manager = await prisma.manager.findUnique({
         where: {
@@ -110,6 +118,8 @@ managerRouter.get("/dashboard", authguard, async (req, res) => {
         return
     }
 
+    // Ces listes derivent de manager.computers et evitent de recalculer les
+    // compteurs directement dans la vue Twig.
     const brokenComputers = manager.computers.filter((computer) => computer.isBroken)
     const occupiedComputers = manager.computers.filter((computer) => !computer.isBroken && computer.client)
     const availableComputers = manager.computers.filter((computer) => !computer.isBroken && !computer.client)
@@ -131,6 +141,7 @@ managerRouter.get("/dashboard", authguard, async (req, res) => {
     })
 })
 
+// Detruit la session Express et force une nouvelle authentification.
 managerRouter.get("/logout", (req, res) => {
     req.session.destroy(() => {
         res.redirect("/login")

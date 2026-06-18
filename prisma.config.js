@@ -3,6 +3,8 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+// Configuration Prisma CLI: elle indique ou trouver les schemas decoupes,
+// les migrations, et l'URL de connexion utilisee par les commandes Prisma.
 export default defineConfig({
   schema: "prisma/",
   migrations: {

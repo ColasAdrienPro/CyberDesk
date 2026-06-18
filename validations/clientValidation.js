@@ -1,11 +1,15 @@
 import { z } from "zod";
 
+// Formats acceptes pour les champs client. Ils restent centralises pour que
+// creation et modification appliquent les memes contraintes.
 const regex = {
     name: /^[\p{L}\s'-]{2,80}$/u,
     password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-])[A-Za-z\d@$!%*?&.#_-]{8,}$/,
     gender: /^[\p{L}\s'-]{2,50}$/u
 };
 
+// Les formulaires HTML envoient "" pour un champ vide: ces helpers les
+// transforment en undefined afin que Zod gere correctement l'optionnel.
 const optionalText = (schema) => z.preprocess(
     (value) => value === "" ? undefined : value,
     schema.optional()
@@ -16,6 +20,8 @@ const optionalNumber = (schema) => z.preprocess(
     schema.optional()
 );
 
+// Mot de passe optionnel utilise uniquement lors d'une modification client:
+// vide = on conserve l'ancien mot de passe, rempli = on valide puis hash.
 const optionalPassword = z.preprocess(
     (value) => value === "" ? undefined : value,
     z.string().regex(
@@ -24,6 +30,7 @@ const optionalPassword = z.preprocess(
     ).optional()
 );
 
+// Champs communs entre creation et edition d'un client.
 const clientBaseSchema = z.object({
     firstname: z
         .string()
@@ -56,6 +63,7 @@ const clientBaseSchema = z.object({
     )
 });
 
+// Schema de creation: le mot de passe est obligatoire et doit etre confirme.
 const clientSchema = clientBaseSchema.extend({
 
     password: z
@@ -72,6 +80,8 @@ const clientSchema = clientBaseSchema.extend({
     path: ["comfirmedPassword"]
 });
 
+// Schema d'edition: les infos personnelles sont controlees comme a la
+// creation, mais le mot de passe devient facultatif.
 export const clientUpdateSchema = clientBaseSchema.extend({
     password: optionalPassword,
     comfirmedPassword: z.preprocess(

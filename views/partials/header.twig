@@ -1,4 +1,5 @@
 <header class="sticky top-0 z-40 w-full border-b border-[#c2c6d6] bg-[#f8f9ff]/95 text-[#0b1c30] backdrop-blur">
+	{# Barre principale: logo, bouton mobile et navigation desktop. #}
 	<div class="flex min-h-16 w-full items-center justify-between gap-4 px-4 py-3 sm:px-6">
 		<a href="{% if isLogged %}/dashboard{% elseif isClientLogged %}/dashboardClient{% else %}/login{% endif %}" class="flex shrink-0 items-center gap-2.5 sm:gap-3">
 			<span class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg sm:h-10 sm:w-10">
@@ -15,6 +16,7 @@
 
 		<nav class="hidden md:block" aria-label="Navigation principale">
 			<ul class="flex min-w-max items-center gap-2 font-['JetBrains_Mono'] text-sm font-medium">
+				{# Menu manager, menu client ou menu public selon la session exposee par Express. #}
 				{% if isLogged %}
 					<li>
 						<a href="/dashboard" class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors sm:gap-2 sm:px-3 {% if currentPath == '/dashboard' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
@@ -35,6 +37,12 @@
 						</a>
 					</li>
 					<li>
+						<a href="/reservations" class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors sm:gap-2 sm:px-3 {% if currentPath == '/reservations' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
+							<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+							Reservations
+						</a>
+					</li>
+					<li>
 						<a href="/logout" class="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#c2c6d6] bg-white px-2.5 py-2 text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be] sm:gap-2 sm:px-3">
 							<span class="material-symbols-outlined text-[18px]">logout</span>
 							Déconnexion
@@ -45,6 +53,12 @@
 						<a href="/dashboardClient" class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors sm:gap-2 sm:px-3 {% if currentPath == '/dashboardClient' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
 							<span class="material-symbols-outlined text-[18px]">dashboard</span>
 							Mon espace
+						</a>
+					</li>
+					<li>
+						<a href="/reservations-client" class="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 transition-colors sm:gap-2 sm:px-3 {% if currentPath == '/reservations-client' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
+							<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+							Reservations
 						</a>
 					</li>
 					<li>
@@ -65,6 +79,7 @@
 		</nav>
 	</div>
 
+	{# Version mobile du meme menu. header.js ouvre/ferme ce bloc via hidden. #}
 	<nav id="mobile-menu" class="border-t border-[#c2c6d6] px-4 py-3 md:hidden" aria-label="Navigation mobile" hidden>
 		<ul class="flex flex-col gap-2 font-['JetBrains_Mono'] text-sm font-medium">
 			{% if isLogged %}
@@ -87,6 +102,12 @@
 					</a>
 				</li>
 				<li>
+					<a href="/reservations" class="flex items-center gap-2 rounded-lg px-3 py-2.5 transition-colors {% if currentPath == '/reservations' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
+						<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+						Reservations
+					</a>
+				</li>
+				<li>
 					<a href="/logout" class="flex w-full items-center gap-2 rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be]">
 						<span class="material-symbols-outlined text-[20px]">logout</span>
 						Déconnexion
@@ -97,6 +118,12 @@
 					<a href="/dashboardClient" class="flex items-center gap-2 rounded-lg px-3 py-2.5 transition-colors {% if currentPath == '/dashboardClient' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
 						<span class="material-symbols-outlined text-[20px]">dashboard</span>
 						Mon espace
+					</a>
+				</li>
+				<li>
+					<a href="/reservations-client" class="flex items-center gap-2 rounded-lg px-3 py-2.5 transition-colors {% if currentPath == '/reservations-client' %}bg-[#6cf8bb] text-[#00714d]{% else %}text-[#424754] hover:bg-[#e5eeff] hover:text-[#0b1c30]{% endif %}">
+						<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+						Reservations
 					</a>
 				</li>
 				<li>
@@ -116,5 +143,6 @@
 		</ul>
 	</nav>
 
+	{# Script isole du header pour garder le template declaratif. #}
 	<script src="/assets/js/header.js" defer></script>
 </header>

@@ -1,5 +1,7 @@
 import { prisma } from "../db.js"
 
+// Protege les pages manager. Si l'id de session correspond encore a un
+// manager existant, on l'attache a req.manager pour les routes suivantes.
 export const authguard = async (req, res, next) => {
     if (req.session.managerId) {
         const manager = await prisma.manager.findUnique({
@@ -17,6 +19,9 @@ export const authguard = async (req, res, next) => {
     }
 }
 
+// Protege les pages client. On charge aussi le manager et le poste lie afin
+// que les dashboards clients puissent afficher ces informations sans refaire
+// une requete dans chaque route.
 export const clientAuthguard = async (req, res, next) => {
     if (req.session.clientId) {
         const client = await prisma.client.findUnique({

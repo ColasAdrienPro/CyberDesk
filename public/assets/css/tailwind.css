@@ -1,2 +1,5 @@
+/* Source Tailwind v4. Le fichier style.css est genere par la commande npm run tailwind. */
 @import "tailwindcss";
+
+/* Demande a Tailwind de scanner les templates Twig pour generer les classes utilisees. */
 @source "../../../views";

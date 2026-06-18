@@ -3,8 +3,11 @@ import { prisma } from "../db.js"
 import { authguard } from "../middlewares/authguard.js"
 import computerSchema from "../validations/computerValidation.js"
 
+// Router responsable du CRUD des postes et de leur affectation aux clients.
 const computerRouter = Router()
 
+// Construit la requete Prisma du tableau ordinateurs selon recherche, statut
+// et tri. managerId reste obligatoire pour isoler chaque cybercafe.
 const getManagerComputer = (managerId, filters = {}) => {
     const search = filters.search?.trim()
     const status = filters.status
@@ -13,6 +16,8 @@ const getManagerComputer = (managerId, filters = {}) => {
     const where = {
         managerId
     }
+    // Les conditions optionnelles sont combinees dans AND pour pouvoir cumuler
+    // recherche texte + filtre de statut.
     const andConditions = []
 
     if (search) {
@@ -87,6 +92,8 @@ const getManagerComputer = (managerId, filters = {}) => {
         id: "desc"
     }
 
+    // Le tri par defaut est l'id desc; si l'UI demande un tri texte, on remplace
+    // la cle orderBy pour eviter deux tris concurrents.
     if (sort === "name") {
         orderBy.name = "asc"
         delete orderBy.id
@@ -106,6 +113,7 @@ const getManagerComputer = (managerId, filters = {}) => {
     })
 }
 
+// Retourne les clients du manager qui n'ont pas encore de poste assigne.
 const getAvailableClients = (managerId) => {
     return prisma.client.findMany({
         where: {
@@ -120,6 +128,7 @@ const getAvailableClients = (managerId) => {
     })
 }
 
+// Prepare les compteurs et rend la page de gestion ordinateurs.
 const renderComputerBoard = (res, computers, viewData = {}) => {
     const availableComputers = computers.filter((computer) => !computer.client).length
 
@@ -131,6 +140,7 @@ const renderComputerBoard = (res, computers, viewData = {}) => {
     })
 }
 
+// Affiche le tableau postes avec les filtres de l'URL.
 computerRouter.get("/computerboard", authguard, async (req, res) => {
     const filters = {
         search: req.query.search ?? "",
@@ -146,6 +156,7 @@ computerRouter.get("/computerboard", authguard, async (req, res) => {
     })
 })
 
+// Cree un nouveau poste apres validation et normalisation de l'adresse MAC.
 computerRouter.post("/computerboard", authguard, async (req, res) => {
     const result = computerSchema.safeParse(req.body)
 
@@ -184,6 +195,7 @@ computerRouter.post("/computerboard", authguard, async (req, res) => {
     }
 })
 
+// Modifie un poste en verifiant qu'il appartient bien au manager connecte.
 computerRouter.post("/computer/:computerId/update", authguard, async (req, res) => {
     const computerId = parseInt(req.params.computerId)
 
@@ -243,6 +255,7 @@ computerRouter.post("/computer/:computerId/update", authguard, async (req, res) 
     }
 })
 
+// Supprime un poste et ses reservations liees dans une transaction.
 computerRouter.post("/computer/:computerId/delete", authguard, async (req, res) => {
     const computerId = parseInt(req.params.computerId)
 
@@ -251,12 +264,32 @@ computerRouter.post("/computer/:computerId/delete", authguard, async (req, res) 
     }
 
     try {
-        await prisma.computer.deleteMany({
+        const computer = await prisma.computer.findFirst({
             where: {
                 id: computerId,
                 managerId: req.session.managerId
             }
         })
+
+        if (!computer) {
+            return res.redirect("/computerboard")
+        }
+
+        // Les reservations sont supprimees avant le poste pour respecter les
+        // contraintes de relations Prisma/MySQL.
+        await prisma.$transaction([
+            prisma.reservation.deleteMany({
+                where: {
+                    computerId: computer.id,
+                    managerId: req.session.managerId
+                }
+            }),
+            prisma.computer.delete({
+                where: {
+                    id: computer.id
+                }
+            })
+        ])
 
         return res.redirect("/computerboard")
     } catch (error) {
@@ -265,6 +298,7 @@ computerRouter.post("/computer/:computerId/delete", authguard, async (req, res) 
     }
 })
 
+// Assigne un client disponible a un poste du manager.
 computerRouter.post("/computer/:computerId/assign-client", authguard, async (req, res) => {
     const computerId = parseInt(req.params.computerId)
     const clientId = parseInt(req.body.clientId)
@@ -291,6 +325,8 @@ computerRouter.post("/computer/:computerId/assign-client", authguard, async (req
             }
         })
 
+        // Si le poste ou le client ne correspond pas au manager, on ignore la
+        // demande au lieu de modifier des donnees hors perimetre.
         if (!computer || !client) {
             return res.redirect("/computerboard")
         }
@@ -311,6 +347,7 @@ computerRouter.post("/computer/:computerId/assign-client", authguard, async (req
     }
 })
 
+// Libere le poste sans supprimer le client.
 computerRouter.post("/computer/:computerId/release-client", authguard, async (req, res) => {
     const computerId = parseInt(req.params.computerId)
 
@@ -319,6 +356,8 @@ computerRouter.post("/computer/:computerId/release-client", authguard, async (re
     }
 
     try {
+        // updateMany evite une exception si l'id existe mais n'appartient pas
+        // au manager connecte: aucune ligne ne sera modifiee.
         await prisma.computer.updateMany({
             where: {
                 id: computerId,
@@ -336,8 +375,10 @@ computerRouter.post("/computer/:computerId/release-client", authguard, async (re
     }
 })
 
+// Marque un poste comme repare et efface la raison de panne.
 computerRouter.post("/computer/:computerId/repair", authguard, async (req, res) => {
     const computerId = parseInt(req.params.computerId)
+    // La meme action peut venir du dashboard ou du tableau postes.
     const redirectTo = req.body.redirectTo === "/dashboard" ? "/dashboard" : "/computerboard"
 
     if (Number.isNaN(computerId)) {

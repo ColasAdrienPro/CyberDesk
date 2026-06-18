@@ -1,0 +1,22 @@
+model Reservation {
+  // Creneau de reservation d'un poste par un client. Le statut PENDING permet
+  // au client de demander un creneau avant validation par le manager.
+  id          Int       @id @default(autoincrement())
+  startAt     DateTime
+  endAt       DateTime
+  status      String    @default("PENDING")
+  createdAt   DateTime  @default(now())
+
+  managerId   Int
+  manager     Manager   @relation(fields: [managerId], references: [id])
+
+  clientId    Int
+  client      Client    @relation(fields: [clientId], references: [id])
+
+  computerId  Int
+  computer    Computer  @relation(fields: [computerId], references: [id])
+
+  @@index([managerId, startAt])
+  @@index([clientId, startAt])
+  @@index([computerId, startAt])
+}

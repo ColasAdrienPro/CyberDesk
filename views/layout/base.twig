@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 	<head>
+		{# Layout racine: toutes les pages heritent de ce squelette. #}
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>CyberDesk</title>
@@ -12,8 +13,12 @@
 		<link rel="stylesheet" href="/assets/css/style.css">
 	</head>
 	<body class="flex min-h-screen flex-col bg-[#f8f9ff] font-[Inter] text-[#0b1c30] antialiased">
+		{# Header et footer communs. Les variables isLogged/isClientLogged viennent de server.js. #}
 		{% include "/partials/header.twig" %}
+		{# Zone remplacee par chaque page via {% block main %}. #}
 		{% block main %}{% endblock %}
 		{% include "/partials/footer.twig" %}
+		{# Zone optionnelle pour charger le JS propre a une page. #}
+		{% block scripts %}{% endblock %}
 	</body>
 </html>
