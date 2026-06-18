@@ -52,9 +52,7 @@
 			</div>
 
 			<p class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754] lg:ml-auto">{{ computers|length|default(0) }}
-				ordinateur
-				{% if computers|length != 1 %}s
-				{% endif %}
+				ordinateur{% if computers|length != 1 %}s{% endif %}
 			</p>
 		</section>
 
@@ -88,36 +86,120 @@
 									<p class="break-all font-['JetBrains_Mono'] text-sm font-medium text-[#0b1c30]">{{ computer.macAddress }}</p>
 								</div>
 
-								<div>
-									<p class="mb-1 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">Identifiant</p>
-									<p class="font-['JetBrains_Mono'] text-sm font-medium text-[#424754]">TERM-{{ computer.id }}</p>
-								</div>
-
-								<div class="mt-auto rounded-lg border border-[#c2c6d6] bg-[#f8f9ff] px-3 py-2">
+								<div class="rounded-lg border border-[#c2c6d6] bg-[#f8f9ff] px-3 py-2">
 									<p class="mb-1 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">Utilisateur actuel</p>
 									{% if computer.client %}
 										<div class="flex items-center gap-2">
 											<span class="flex h-7 w-7 items-center justify-center rounded bg-[#2170e4] font-['JetBrains_Mono'] text-xs font-bold text-white">
 												{{ computer.client.firstname|first|upper }}{{ computer.client.lastname|first|upper }}
 											</span>
-											<p class="truncate text-sm font-medium text-[#0b1c30]">{{ computer.client.firstname }}
-												{{ computer.client.lastname }}</p>
+											<div class="min-w-0">
+												<p class="truncate text-sm font-medium text-[#0b1c30]">{{ computer.client.firstname }}
+													{{ computer.client.lastname }}</p>
+												<p class="truncate text-xs text-[#727785]">{{ computer.client.email }}</p>
+											</div>
 										</div>
 									{% else %}
 										<p class="text-sm italic text-[#424754]">Aucun client assigné</p>
 									{% endif %}
 								</div>
+
+								<div class="mt-auto space-y-3 border-t border-[#e5e7f0] pt-3">
+									<div class="grid grid-cols-2 gap-2">
+										<button type="button" class="inline-flex items-center justify-center gap-2 rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be]" data-dialog-target="#edit-computer-{{ computer.id }}">
+											<span class="material-symbols-outlined text-[18px]">edit</span>
+											Modifier
+										</button>
+										<form action="/computer/{{ computer.id }}/delete" method="post" onsubmit="return confirm('Supprimer cet ordinateur ?');">
+											<button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#ffb3ad] bg-white px-3 py-2.5 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#930013] transition-colors hover:bg-[#ffdad7]">
+												<span class="material-symbols-outlined text-[18px]">delete</span>
+												Supprimer
+											</button>
+										</form>
+									</div>
+									{% if computer.client %}
+										<form action="/computer/{{ computer.id }}/release-client" method="post">
+											<button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be]">
+												<span class="material-symbols-outlined text-[18px]">logout</span>
+												Liberer le poste
+											</button>
+										</form>
+									{% else %}
+										{% if availableClients and availableClients|length > 0 %}
+											<form action="/computer/{{ computer.id }}/assign-client" method="post" class="flex flex-col gap-2">
+												<label for="clientId-{{ computer.id }}" class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">Attribution</label>
+												<div class="flex gap-2">
+													<select id="clientId-{{ computer.id }}" name="clientId" class="min-w-0 flex-1 rounded-lg border border-[#c2c6d6] bg-[#f8f9ff] px-3 py-2.5 text-sm text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]">
+														{% for client in availableClients %}
+															<option value="{{ client.id }}">{{ client.firstname }}
+																{{ client.lastname }}</option>
+														{% endfor %}
+													</select>
+													<button type="submit" class="inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg bg-[#0058be] text-white transition-all hover:bg-[#2170e4] hover:shadow-[inset_0_0_8px_rgba(255,255,255,0.35)] active:scale-[0.98]" aria-label="Assigner un client">
+														<span class="material-symbols-outlined text-[20px]">person_add</span>
+													</button>
+												</div>
+											</form>
+										{% else %}
+											<div class="rounded-lg border border-dashed border-[#c2c6d6] bg-[#f8f9ff] px-3 py-2.5">
+												<p class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">Attribution</p>
+												<p class="mt-1 text-sm text-[#424754]">Aucun client disponible</p>
+											</div>
+										{% endif %}
+									{% endif %}
+								</div>
 							</div>
 						</article>
+
+						<dialog id="edit-computer-{{ computer.id }}" class="m-auto max-h-[92vh] w-[min(94vw,640px)] overflow-y-auto rounded-lg border border-[#c2c6d6] bg-white p-0 text-[#0b1c30] shadow-[0_18px_50px_rgba(11,28,48,0.18)] backdrop:bg-[#0b1c30]/40" data-click-outside-close {% if editComputerId == computer.id %} data-open-on-load="true" {% endif %}>
+							<div class="flex items-center justify-between gap-4 border-b border-[#c2c6d6] bg-[#f8f9ff] px-5 py-4">
+								<div>
+									<h2 class="text-xl font-semibold leading-tight">Modifier l'ordinateur</h2>
+									<p class="mt-1 text-sm text-[#424754]">Mettez a jour le nom ou l'adresse MAC du poste.</p>
+								</div>
+								<button type="button" class="rounded p-1.5 text-[#424754] transition-colors hover:bg-[#e5eeff] hover:text-[#0b1c30]" data-dialog-close aria-label="Fermer">
+									<span class="material-symbols-outlined text-[22px]">close</span>
+								</button>
+							</div>
+
+							<form action="/computer/{{ computer.id }}/update" method="post" class="space-y-4 px-4 py-5 sm:px-5">
+								{% if editComputerId == computer.id and editErrors.general %}
+									<div class="rounded-lg border border-[#ffb3ad] bg-[#ffdad7] px-4 py-3 text-sm text-[#930013]">
+										{% for error in editErrors.general %}
+											<p>{{ error }}</p>
+										{% endfor %}
+									</div>
+								{% endif %}
+
+								<div class="space-y-1.5">
+									<label for="edit-name-{{ computer.id }}" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Nom du poste</label>
+									<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="text" id="edit-name-{{ computer.id }}" name="name" value="{% if editComputerId == computer.id %}{{ editOld.name|default(computer.name) }}{% else %}{{ computer.name }}{% endif %}">
+									{% if editComputerId == computer.id and editErrors.name %}
+										<p class="text-sm text-[#ba1a1a]">{{ editErrors.name[0] }}</p>
+									{% endif %}
+								</div>
+
+								<div class="space-y-1.5">
+									<label for="edit-macAddress-{{ computer.id }}" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Adresse MAC</label>
+									<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 font-['JetBrains_Mono'] text-sm font-medium uppercase tracking-[0.18em] text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="text" id="edit-macAddress-{{ computer.id }}" name="macAddress" value="{% if editComputerId == computer.id %}{{ editOld.macAddress|default(computer.macAddress) }}{% else %}{{ computer.macAddress }}{% endif %}" maxlength="17" data-mac-address-input>
+									{% if editComputerId == computer.id and editErrors.macAddress %}
+										<p class="text-sm text-[#ba1a1a]">{{ editErrors.macAddress[0] }}</p>
+									{% endif %}
+								</div>
+
+								<div class="flex flex-col-reverse gap-3 border-t border-[#c2c6d6] pt-4 sm:flex-row sm:justify-end">
+									<button type="button" class="rounded-lg border border-[#c2c6d6] bg-white px-4 py-2.5 font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be]" data-dialog-close>Annuler</button>
+									<button type="submit" class="rounded-lg bg-[#0058be] px-4 py-2.5 font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-white transition-all hover:bg-[#2170e4] hover:shadow-[inset_0_0_8px_rgba(255,255,255,0.35)] active:scale-[0.98]">Enregistrer</button>
+								</div>
+							</form>
+						</dialog>
 					{% endfor %}
 				</div>
 
 				<div class="flex flex-col gap-1 border-t border-[#c2c6d6] bg-[#f8f9ff] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
 					<p class="text-sm text-[#424754]">Affichage de
 						{{ computers|length }}
-						ordinateur
-						{% if computers|length != 1 %}s
-						{% endif %}
+						ordinateur{% if computers|length != 1 %}s{% endif %}
 					</p>
 					<span class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">CyberDesk</span>
 				</div>
@@ -157,7 +239,7 @@
 
 			<div class="space-y-1.5">
 				<label for="name" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Nom du poste</label>
-				<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all placeholder:text-[#727785] focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="text" id="name" name="name" value="{{ old.name|default('') }}" placeholder="Ex. TERM-01">
+				<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all placeholder:text-[#727785] focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="text" id="name" name="name" value="{{ old.name|default('') }}" placeholder="Ex. Accueil-01">
 				{% if errors.name %}
 					<p class="text-sm text-[#ba1a1a]">{{ errors.name[0] }}</p>
 				{% endif %}

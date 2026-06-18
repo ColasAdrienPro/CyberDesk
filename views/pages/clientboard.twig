@@ -36,9 +36,7 @@
 			</div>
 
 			<p class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754] lg:ml-auto">{{ clients|length|default(0) }}
-				client
-				{% if clients|length != 1 %}s
-				{% endif %}
+				client{% if clients|length != 1 %}s{% endif %}
 			</p>
 		</section>
 
@@ -94,6 +92,18 @@
 											</dd>
 										</div>
 									</dl>
+									<div class="mt-4 grid grid-cols-2 gap-2">
+										<button type="button" class="inline-flex items-center justify-center gap-2 rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be]" data-dialog-target="#edit-client-{{ client.id }}">
+											<span class="material-symbols-outlined text-[18px]">edit</span>
+											Modifier
+										</button>
+										<form action="/client/{{ client.id }}/delete" method="post" onsubmit="return confirm('Supprimer ce client ?');">
+											<button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#ffb3ad] bg-white px-3 py-2.5 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#930013] transition-colors hover:bg-[#ffdad7]">
+												<span class="material-symbols-outlined text-[18px]">delete</span>
+												Supprimer
+											</button>
+										</form>
+									</div>
 								</div>
 							</div>
 						</article>
@@ -108,6 +118,7 @@
 								<th class="px-6 py-3 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754]">Contact</th>
 								<th class="px-6 py-3 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754]">Details</th>
 								<th class="px-6 py-3 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754]">Statut</th>
+								<th class="px-6 py-3 font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#424754]">Actions</th>
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-[#c2c6d6]">
@@ -155,17 +166,117 @@
 											</span>
 										{% endif %}
 									</td>
+									<td class="px-6 py-4">
+										<div class="flex items-center gap-2">
+											<button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#c2c6d6] bg-white text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be]" data-dialog-target="#edit-client-{{ client.id }}" aria-label="Modifier le client">
+												<span class="material-symbols-outlined text-[18px]">edit</span>
+											</button>
+											<form action="/client/{{ client.id }}/delete" method="post" onsubmit="return confirm('Supprimer ce client ?');">
+												<button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#ffb3ad] bg-white text-[#930013] transition-colors hover:bg-[#ffdad7]" aria-label="Supprimer le client">
+													<span class="material-symbols-outlined text-[18px]">delete</span>
+												</button>
+											</form>
+										</div>
+									</td>
 								</tr>
 							{% endfor %}
 						</tbody>
 					</table>
 				</div>
+				{% for client in clients %}
+					<dialog id="edit-client-{{ client.id }}" class="m-auto max-h-[92vh] w-[min(94vw,640px)] overflow-y-auto rounded-lg border border-[#c2c6d6] bg-white p-0 text-[#0b1c30] shadow-[0_18px_50px_rgba(11,28,48,0.18)] backdrop:bg-[#0b1c30]/40" data-click-outside-close {% if editClientId == client.id %} data-open-on-load="true" {% endif %}>
+						<div class="flex items-center justify-between border-b border-[#c2c6d6] bg-[#f8f9ff] px-5 py-4">
+							<div>
+								<h2 class="text-xl font-semibold leading-tight">Modifier le client</h2>
+								<p class="mt-1 text-sm text-[#424754]">Laissez le mot de passe vide pour le conserver.</p>
+							</div>
+							<button type="button" class="rounded p-1.5 text-[#424754] transition-colors hover:bg-[#e5eeff] hover:text-[#0b1c30]" data-dialog-close aria-label="Fermer">
+								<span class="material-symbols-outlined text-[22px]">close</span>
+							</button>
+						</div>
+
+						<form action="/client/{{ client.id }}/update" method="post" class="space-y-4 px-4 py-5 sm:px-5">
+							{% if editClientId == client.id and editErrors.general %}
+								<div class="rounded-lg border border-[#ffb3ad] bg-[#ffdad7] px-4 py-3 text-sm text-[#930013]">
+									{% for error in editErrors.general %}
+										<p>{{ error }}</p>
+									{% endfor %}
+								</div>
+							{% endif %}
+
+							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<div class="space-y-1.5">
+									<label for="edit-firstname-{{ client.id }}" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Prenom</label>
+									<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="text" id="edit-firstname-{{ client.id }}" name="firstname" value="{% if editClientId == client.id %}{{ editOld.firstname|default(client.firstname) }}{% else %}{{ client.firstname }}{% endif %}">
+									{% if editClientId == client.id and editErrors.firstname %}
+										<p class="text-sm text-[#ba1a1a]">{{ editErrors.firstname[0] }}</p>
+									{% endif %}
+								</div>
+
+								<div class="space-y-1.5">
+									<label for="edit-lastname-{{ client.id }}" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Nom</label>
+									<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="text" id="edit-lastname-{{ client.id }}" name="lastname" value="{% if editClientId == client.id %}{{ editOld.lastname|default(client.lastname) }}{% else %}{{ client.lastname }}{% endif %}">
+									{% if editClientId == client.id and editErrors.lastname %}
+										<p class="text-sm text-[#ba1a1a]">{{ editErrors.lastname[0] }}</p>
+									{% endif %}
+								</div>
+							</div>
+
+							<div class="space-y-1.5">
+								<label for="edit-email-{{ client.id }}" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Email</label>
+								<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="email" id="edit-email-{{ client.id }}" name="email" value="{% if editClientId == client.id %}{{ editOld.email|default(client.email) }}{% else %}{{ client.email }}{% endif %}">
+								{% if editClientId == client.id and editErrors.email %}
+									<p class="text-sm text-[#ba1a1a]">{{ editErrors.email[0] }}</p>
+								{% endif %}
+							</div>
+
+							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<div class="space-y-1.5">
+									<label for="edit-password-{{ client.id }}" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Nouveau mot de passe</label>
+									<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="password" id="edit-password-{{ client.id }}" name="password">
+									{% if editClientId == client.id and editErrors.password %}
+										<p class="text-sm text-[#ba1a1a]">{{ editErrors.password[0] }}</p>
+									{% endif %}
+								</div>
+
+								<div class="space-y-1.5">
+									<label for="edit-comfirmedPassword-{{ client.id }}" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Confirmation</label>
+									<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="password" id="edit-comfirmedPassword-{{ client.id }}" name="comfirmedPassword">
+									{% if editClientId == client.id and editErrors.comfirmedPassword %}
+										<p class="text-sm text-[#ba1a1a]">{{ editErrors.comfirmedPassword[0] }}</p>
+									{% endif %}
+								</div>
+							</div>
+
+							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<div class="space-y-1.5">
+									<label for="edit-age-{{ client.id }}" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Age <span class="text-[#727785]">(optionnel)</span></label>
+									<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="number" id="edit-age-{{ client.id }}" name="age" value="{% if editClientId == client.id %}{{ editOld.age|default(client.age) }}{% else %}{{ client.age }}{% endif %}">
+									{% if editClientId == client.id and editErrors.age %}
+										<p class="text-sm text-[#ba1a1a]">{{ editErrors.age[0] }}</p>
+									{% endif %}
+								</div>
+
+								<div class="space-y-1.5">
+									<label for="edit-gender-{{ client.id }}" class="block font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#0b1c30]">Genre <span class="text-[#727785]">(optionnel)</span></label>
+									<input class="w-full rounded-lg border border-[#c2c6d6] bg-white px-3 py-2.5 text-base text-[#0b1c30] transition-all focus:border-[#0058be] focus:outline-none focus:shadow-[0_0_0_3px_rgba(0,88,190,0.10)]" type="text" id="edit-gender-{{ client.id }}" name="gender" value="{% if editClientId == client.id %}{{ editOld.gender|default(client.gender) }}{% else %}{{ client.gender }}{% endif %}">
+									{% if editClientId == client.id and editErrors.gender %}
+										<p class="text-sm text-[#ba1a1a]">{{ editErrors.gender[0] }}</p>
+									{% endif %}
+								</div>
+							</div>
+
+							<div class="flex flex-col-reverse gap-3 border-t border-[#c2c6d6] pt-4 sm:flex-row sm:justify-end">
+								<button type="button" class="rounded-lg border border-[#c2c6d6] bg-white px-4 py-2.5 font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-[#424754] transition-colors hover:border-[#adc6ff] hover:text-[#0058be]" data-dialog-close>Annuler</button>
+								<button type="submit" class="rounded-lg bg-[#0058be] px-4 py-2.5 font-['JetBrains_Mono'] text-sm font-medium tracking-[0.05em] text-white transition-all hover:bg-[#2170e4] hover:shadow-[inset_0_0_8px_rgba(255,255,255,0.35)] active:scale-[0.98]">Enregistrer</button>
+							</div>
+						</form>
+					</dialog>
+				{% endfor %}
 				<div class="flex flex-col gap-1 border-t border-[#c2c6d6] bg-[#f8f9ff] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
 					<p class="text-sm text-[#424754]">Affichage de
 						{{ clients|length }}
-						client
-						{% if clients|length != 1 %}s
-						{% endif %}
+						client{% if clients|length != 1 %}s{% endif %}
 					</p>
 					<span class="font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-[#727785]">CyberDesk</span>
 				</div>

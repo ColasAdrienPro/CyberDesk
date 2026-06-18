@@ -95,7 +95,10 @@
 								{% if computer.isBroken %}
 									<span class="mt-3 inline-flex w-fit items-center rounded bg-[#ffdad7] px-2 py-1 font-['JetBrains_Mono'] text-[10px] font-bold uppercase tracking-wider text-[#ba1a1a]">En panne</span>
 								{% elseif computer.client %}
-									<span class="mt-3 inline-flex w-fit items-center rounded bg-[#eaf1ff] px-2 py-1 font-['JetBrains_Mono'] text-[10px] font-bold uppercase tracking-wider text-[#0058be]">Occupé</span>
+									<span class="mt-3 inline-flex max-w-full items-center gap-1 rounded bg-[#eaf1ff] px-2 py-1 font-['JetBrains_Mono'] text-[10px] font-bold uppercase tracking-wider text-[#0058be]" title="Occupé par {{ computer.client.firstname }} {{ computer.client.lastname }}">
+										<span class="shrink-0">Occupé par</span>
+										<span class="truncate">{{ computer.client.firstname }} {{ computer.client.lastname }}</span>
+									</span>
 								{% else %}
 									<span class="mt-3 inline-flex w-fit items-center rounded bg-[#ecfdf5] px-2 py-1 font-['JetBrains_Mono'] text-[10px] font-bold uppercase tracking-wider text-[#047857]">Disponible</span>
 								{% endif %}

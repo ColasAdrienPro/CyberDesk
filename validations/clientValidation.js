@@ -16,7 +16,15 @@ const optionalNumber = (schema) => z.preprocess(
     schema.optional()
 );
 
-const clientSchema = z.object({
+const optionalPassword = z.preprocess(
+    (value) => value === "" ? undefined : value,
+    z.string().regex(
+        regex.password,
+        "Le mot de passe doit contenir au moins 8 caracteres, une minuscule, une majuscule, un chiffre et un caractere special."
+    ).optional()
+);
+
+const clientBaseSchema = z.object({
     firstname: z
         .string()
         .trim()
@@ -32,16 +40,6 @@ const clientSchema = z.object({
         .trim()
         .email("L'adresse email est invalide."),
 
-    password: z
-        .string()
-        .regex(
-            regex.password,
-            "Le mot de passe doit contenir au moins 8 caracteres, une minuscule, une majuscule, un chiffre et un caractere special."
-        ),
-
-    comfirmedPassword: z
-        .string(),
-
     age: optionalNumber(
         z
             .number({ error: "L'age doit etre un nombre." })
@@ -55,6 +53,30 @@ const clientSchema = z.object({
             .string()
             .trim()
             .regex(regex.gender, "Le genre doit contenir entre 2 et 50 lettres.")
+    )
+});
+
+const clientSchema = clientBaseSchema.extend({
+
+    password: z
+        .string()
+        .regex(
+            regex.password,
+            "Le mot de passe doit contenir au moins 8 caracteres, une minuscule, une majuscule, un chiffre et un caractere special."
+        ),
+
+    comfirmedPassword: z
+        .string()
+}).strict().refine((data) => data.password === data.comfirmedPassword, {
+    message: "Les mots de passe ne correspondent pas.",
+    path: ["comfirmedPassword"]
+});
+
+export const clientUpdateSchema = clientBaseSchema.extend({
+    password: optionalPassword,
+    comfirmedPassword: z.preprocess(
+        (value) => value === "" ? undefined : value,
+        z.string().optional()
     )
 }).strict().refine((data) => data.password === data.comfirmedPassword, {
     message: "Les mots de passe ne correspondent pas.",
