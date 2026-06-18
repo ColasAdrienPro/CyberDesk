@@ -8,56 +8,12 @@ import clientSchema, { clientUpdateSchema } from "../validations/clientValidatio
 // cote manager.
 const clientRouter = Router()
 
-// Construit la requete Prisma de listing clients selon les filtres de l'UI.
-// Le managerId est toujours impose pour ne jamais exposer les clients d'un
-// autre cybercafe.
-const getManagerClients = (managerId, filters = {}) => {
-    const search = filters.search?.trim()
-    const status = filters.status
-    const gender = filters.gender
-
-    const where = {
-        managerId
-    }
-
-    if (search) {
-        where.OR = [
-            {
-                firstname: {
-                    contains: search
-                }
-            },
-            {
-                lastname: {
-                    contains: search
-                }
-            },
-            {
-                email: {
-                    contains: search
-                }
-            }
-        ]
-    }
-
-    if (status === "assigned") {
-        where.computer = {
-            isNot: null
-        }
-    }
-
-    if (status === "unassigned") {
-        where.computer = {
-            is: null
-        }
-    }
-
-    if (gender) {
-        where.gender = gender
-    }
-
+// Liste les clients du manager connecte sans exposer ceux d'un autre cybercafe.
+const getManagerClients = (managerId) => {
     return prisma.client.findMany({
-        where,
+        where: {
+            managerId
+        },
         include: {
             computer: true
         },
@@ -67,8 +23,8 @@ const getManagerClients = (managerId, filters = {}) => {
     })
 }
 
-// Rend la page de gestion clients avec les donnees optionnelles d'erreurs,
-// filtres ou formulaire en cours d'edition.
+// Rend la page de gestion clients avec les donnees optionnelles d'erreurs ou
+// de formulaire en cours d'edition.
 const renderClientBoard = (res, clients, viewData = {}) => {
     return res.render("pages/clientboard.twig", {
         clients,
@@ -185,18 +141,11 @@ clientRouter.get("/logout-client", (req, res) => {
     })
 })
 
-// Liste les clients du manager avec recherche, statut et genre.
+// Liste les clients du manager.
 clientRouter.get("/clientboard", authguard, async (req, res) => {
-    const filters = {
-        search: req.query.search ?? "",
-        status: req.query.status ?? "",
-        gender: req.query.gender ?? ""
-    }
-    const clients = await getManagerClients(req.session.managerId, filters)
+    const clients = await getManagerClients(req.session.managerId)
 
-    renderClientBoard(res, clients, {
-        filters
-    })
+    renderClientBoard(res, clients)
 })
 
 // Ajoute un client rattache au manager connecte.

@@ -6,110 +6,18 @@ import computerSchema from "../validations/computerValidation.js"
 // Router responsable du CRUD des postes et de leur affectation aux clients.
 const computerRouter = Router()
 
-// Construit la requete Prisma du tableau ordinateurs selon recherche, statut
-// et tri. managerId reste obligatoire pour isoler chaque cybercafe.
-const getManagerComputer = (managerId, filters = {}) => {
-    const search = filters.search?.trim()
-    const status = filters.status
-    const sort = filters.sort
-
-    const where = {
-        managerId
-    }
-    // Les conditions optionnelles sont combinees dans AND pour pouvoir cumuler
-    // recherche texte + filtre de statut.
-    const andConditions = []
-
-    if (search) {
-        andConditions.push({
-            OR: [
-                {
-                    name: {
-                        contains: search
-                    }
-                },
-                {
-                    macAddress: {
-                        contains: search
-                    }
-                },
-                {
-                    client: {
-                        is: {
-                            OR: [
-                                {
-                                    firstname: {
-                                        contains: search
-                                    }
-                                },
-                                {
-                                    lastname: {
-                                        contains: search
-                                    }
-                                },
-                                {
-                                    email: {
-                                        contains: search
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            ]
-        })
-    }
-
-    if (status === "available") {
-        andConditions.push({
-            client: {
-                is: null
-            },
-            isBroken: false
-        })
-    }
-
-    if (status === "occupied") {
-        andConditions.push({
-            client: {
-                isNot: null
-            },
-            isBroken: false
-        })
-    }
-
-    if (status === "broken") {
-        andConditions.push({
-            isBroken: true
-        })
-    }
-
-    if (andConditions.length > 0) {
-        where.AND = andConditions
-    }
-
-    const orderBy = {
-        id: "desc"
-    }
-
-    // Le tri par defaut est l'id desc; si l'UI demande un tri texte, on remplace
-    // la cle orderBy pour eviter deux tris concurrents.
-    if (sort === "name") {
-        orderBy.name = "asc"
-        delete orderBy.id
-    }
-
-    if (sort === "macAddress") {
-        orderBy.macAddress = "asc"
-        delete orderBy.id
-    }
-
+// Liste les postes du manager connecte sans exposer ceux d'un autre cybercafe.
+const getManagerComputer = (managerId) => {
     return prisma.computer.findMany({
-        where,
+        where: {
+            managerId
+        },
         include: {
             client: true
         },
-        orderBy
+        orderBy: {
+            id: "desc"
+        }
     })
 }
 
@@ -140,19 +48,13 @@ const renderComputerBoard = (res, computers, viewData = {}) => {
     })
 }
 
-// Affiche le tableau postes avec les filtres de l'URL.
+// Affiche le tableau postes.
 computerRouter.get("/computerboard", authguard, async (req, res) => {
-    const filters = {
-        search: req.query.search ?? "",
-        status: req.query.status ?? "",
-        sort: req.query.sort ?? ""
-    }
-    const computers = await getManagerComputer(req.session.managerId, filters)
+    const computers = await getManagerComputer(req.session.managerId)
     const availableClients = await getAvailableClients(req.session.managerId)
 
     renderComputerBoard(res, computers, {
-        availableClients,
-        filters
+        availableClients
     })
 })
 
