@@ -6,53 +6,11 @@ import clientSchema, { clientUpdateSchema } from "../validations/clientValidatio
 
 const clientRouter = Router()
 
-const getManagerClients = (managerId, filters = {}) => {
-    const search = filters.search?.trim()
-    const status = filters.status
-    const gender = filters.gender
-
-    const where = {
-        managerId
-    }
-
-    if (search) {
-        where.OR = [
-            {
-                firstname: {
-                    contains: search
-                }
-            },
-            {
-                lastname: {
-                    contains: search
-                }
-            },
-            {
-                email: {
-                    contains: search
-                }
-            }
-        ]
-    }
-
-    if (status === "assigned") {
-        where.computer = {
-            isNot: null
-        }
-    }
-
-    if (status === "unassigned") {
-        where.computer = {
-            is: null
-        }
-    }
-
-    if (gender) {
-        where.gender = gender
-    }
-
+const getManagerClients = (managerId) => {
     return prisma.client.findMany({
-        where,
+        where: {
+            managerId
+        },
         include: {
             computer: true
         },
@@ -170,16 +128,9 @@ clientRouter.get("/logout-client", (req, res) => {
 })
 
 clientRouter.get("/clientboard", authguard, async (req, res) => {
-    const filters = {
-        search: req.query.search ?? "",
-        status: req.query.status ?? "",
-        gender: req.query.gender ?? ""
-    }
-    const clients = await getManagerClients(req.session.managerId, filters)
+    const clients = await getManagerClients(req.session.managerId)
 
-    renderClientBoard(res, clients, {
-        filters
-    })
+    renderClientBoard(res, clients)
 })
 
 clientRouter.post("/clientboard", authguard, async (req, res) => {

@@ -25,6 +25,19 @@ managerRouter.post("/subscribe", async (req, res) => {
     }
 
     try {
+        const existingManager = await prisma.manager.findUnique({
+            where: {
+                siret: result.data.siret
+            }
+        })
+
+        if (existingManager) {
+            return res.render("pages/subscribe.twig", {
+                errors: { siret: ["Ce SIRET est déjà utilisé."] },
+                old: req.body
+            })
+        }
+
         const hashedpassword = await hash(result.data.password, parseInt(process.env.SALT))
 
         await prisma.manager.create({
@@ -40,6 +53,13 @@ managerRouter.post("/subscribe", async (req, res) => {
 
     } catch (error) {
         console.error(error)
+
+        if (error.code === "P2002" && error.meta?.modelName === "Manager") {
+            return res.render("pages/subscribe.twig", {
+                errors: { siret: ["Ce SIRET est déjà utilisé."] },
+                old: req.body
+            })
+        }
 
         return res.render("pages/subscribe.twig", {
             errors: { general: ["Une erreur est survenue pendant l'inscription."] },
